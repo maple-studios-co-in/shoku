@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useCart } from "@/components/Providers";
+import { useCart, useBrand } from "@/components/Providers";
 import { MILK_OPTIONS, formatINR } from "@/lib/menu";
+import { lighterSwap } from "@/lib/foodIntel";
+import { DietBadges } from "@/components/ProductCard";
 
 function InfoRow({ icon, title, children, highlight }) {
   return (
@@ -35,10 +37,16 @@ export default function ItemPage() {
   const router = useRouter();
   const { add } = useCart();
 
+  const { brand } = useBrand();
   const [item, setItem] = useState(null);
+  const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sizeName, setSizeName] = useState(null);
   const [milk, setMilk] = useState(MILK_OPTIONS[0]);
+
+  useEffect(() => {
+    fetch("/api/menu").then((r) => (r.ok ? r.json() : null)).then((d) => d?.items && setMenuItems(d.items)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch(`/api/menu/${id}`)
@@ -99,6 +107,20 @@ export default function ItemPage() {
           <div className="whitespace-nowrap text-xl font-extrabold">{formatINR(item.price)}</div>
         </div>
         <p className="mt-3 text-[13.5px] text-ink/80">{item.desc}</p>
+        <div className="mt-2"><DietBadges diet={item.diet} max={6} /></div>
+
+        {(() => {
+          const swap = lighterSwap(item, menuItems);
+          return swap ? (
+            <Link href={`/item/${swap.id}`} className="mt-3 flex items-center gap-2.5 rounded-xl border border-line bg-canvas px-3.5 py-2.5">
+              <span className="text-base">🍃</span>
+              <span className="text-[12.5px]">
+                <b className="text-brand-dark">Lighter swap:</b> {swap.name} has {Math.round((1 - (swap.sugar ?? 0) / Math.max(item.sugar, 1)) * 100)}% less sugar
+              </span>
+              <span className="ml-auto text-xs font-bold text-brand-dark">View →</span>
+            </Link>
+          ) : null;
+        })()}
 
         <div className="mt-4 overflow-hidden rounded-2xl border border-line">
           <div className="flex items-center gap-2 bg-brand-tint px-3.5 py-3 text-[13px] font-bold text-brand-dark">
@@ -115,6 +137,11 @@ export default function ItemPage() {
           </InfoRow>
           {item.aiTip && (
             <InfoRow icon="💡" title="AI tip" highlight>{item.aiTip}</InfoRow>
+          )}
+          {brand.fssaiLicense && (
+            <InfoRow icon="🛡️" title="Food safety">
+              FSSAI Lic. {brand.fssaiLicense} · prepared fresh at {brand.storeName || brand.name}
+            </InfoRow>
           )}
         </div>
 

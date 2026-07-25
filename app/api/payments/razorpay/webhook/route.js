@@ -45,6 +45,15 @@ export async function POST(req) {
           data: { points: { increment: order.pointsRedeemed } },
         });
       }
+      if (flipped.count === 1) {
+        // Return reserved merch stock (tracked items only).
+        const lines = await prisma.orderItem.findMany({ where: { orderId: order.id }, include: { item: { select: { type: true, stockQty: true } } } });
+        for (const l of lines) {
+          if (l.item?.type === "merch" && l.item.stockQty !== null) {
+            await prisma.item.update({ where: { id: l.itemId }, data: { stockQty: { increment: l.qty } } });
+          }
+        }
+      }
     }
   }
 

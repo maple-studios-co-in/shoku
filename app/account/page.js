@@ -64,6 +64,29 @@ export default function AccountPage() {
           </p>
         )}
 
+        {me != null && me.caffeineMg > 0 && (
+          <div className="mt-4 rounded-2xl border border-line bg-white p-4 shadow-card">
+            <div className="flex items-baseline justify-between">
+              <h3 className="text-sm font-bold">☕ Today's caffeine</h3>
+              <span className="text-[12px] font-bold text-brand-dark">{me.caffeineMg} mg</span>
+            </div>
+            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-canvas">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${Math.min(100, Math.round((me.caffeineMg / me.caffeineLimit) * 100))}%`,
+                  background: me.caffeineMg > me.caffeineLimit ? "#C2643C" : "#3A6B4D",
+                }}
+              />
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted">
+              {me.caffeineMg > me.caffeineLimit
+                ? "Above the 400mg daily guideline — maybe a decaf next? 🍃"
+                : `${me.caffeineLimit - me.caffeineMg} mg left of the 400mg daily guideline`}
+            </p>
+          </div>
+        )}
+
         {rewards.length > 0 && (
           <>
             <h3 className="mb-2 mt-6 text-sm font-bold">Rewards you can unlock</h3>

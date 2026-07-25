@@ -51,6 +51,59 @@ function FeedbackCard({ orderId }) {
   );
 }
 
+// Share-to-earn: paste a post link → café approves → points. One per day.
+function ShareCard({ orderId }) {
+  const { brand } = useBrand();
+  const [open, setOpen] = useState(false);
+  const [url, setUrl] = useState("");
+  const [state, setState] = useState("idle"); // idle | busy | done | error
+  const [msg, setMsg] = useState("");
+
+  if (brand.shareEnabled === false) return null;
+
+  async function submit() {
+    setState("busy"); setMsg("");
+    try {
+      const res = await fetch("/api/social-posts", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, orderId }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Could not submit");
+      setState("done");
+    } catch (e) { setState("error"); setMsg(e.message); }
+  }
+
+  if (state === "done") {
+    return (
+      <div className="mx-auto mt-4 max-w-xs rounded-2xl border border-line bg-white p-4 text-[13px]">
+        <div className="text-[15px] font-bold text-brand-dark">Sent for review! 📸</div>
+        <div className="mt-1 text-muted">Once the café approves, {brand.sharePoints ?? 50} points land in your account.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto mt-4 max-w-xs rounded-2xl border border-brand bg-brand-tint p-4 text-left">
+      <div className="text-[14px] font-bold text-brand-dark">📸 Snap it, share it, earn {brand.sharePoints ?? 50} pts</div>
+      <p className="mt-1 text-[12px] text-ink/70">Post your order on Instagram or Snapchat, then paste the link — the café will approve it.</p>
+      {!open ? (
+        <button onClick={() => setOpen(true)} className="mt-3 w-full rounded-xl bg-brand py-2.5 text-[13px] font-bold text-white">I posted it →</button>
+      ) : (
+        <>
+          <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://instagram.com/p/…"
+            inputMode="url" className="mt-3 w-full rounded-lg border border-line bg-white px-3 py-2 text-[13px] outline-none focus:border-brand" />
+          {msg && <div className="mt-1.5 text-[12px] font-semibold text-[#a3452d]">{msg}</div>}
+          <button onClick={submit} disabled={state === "busy" || !url.trim()}
+            className="mt-2 w-full rounded-xl bg-brand py-2.5 text-[13px] font-bold text-white disabled:opacity-50">
+            {state === "busy" ? "Submitting…" : "Submit for review"}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function SuccessInner() {
   const params = useSearchParams();
   const { brand } = useBrand();
@@ -66,6 +119,7 @@ function SuccessInner() {
         <div className="mt-1 text-muted">Pickup · {brand.address || BRAND.address}</div>
         <div className="mt-1 text-muted">Order #PS-{shortId}</div>
       </div>
+      <ShareCard orderId={id} />
       <div className="mt-8 flex flex-col items-center gap-3">
         <Link href="/menu" className="inline-block rounded-xl bg-brand px-7 py-3.5 text-[15px] font-bold text-white">Back to menu</Link>
         <Link href="/account" className="text-sm font-semibold text-brand">View your orders →</Link>

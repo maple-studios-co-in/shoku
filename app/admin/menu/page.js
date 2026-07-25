@@ -7,6 +7,7 @@ const BLANK = {
   name: "", categoryId: "ice-blended", price: 0, img: "", desc: "",
   kcal: 0, caffeine: 0, protein: 0, sugar: 0, veg: true, signature: false,
   origin: "", ingredients: "", allergens: "", tags: "", aiTip: "", sizes: null,
+  type: "food", stockQty: "", diet: "",
 };
 
 function toForm(it) {
@@ -15,6 +16,9 @@ function toForm(it) {
     ingredients: (it.ingredients || []).join(", "),
     allergens: (it.allergens || []).join(", "),
     tags: (it.tags || []).join(", "),
+    diet: (it.diet || []).join(", "),
+    type: it.type || "food",
+    stockQty: it.stockQty ?? "",
   };
 }
 function fromForm(f) {
@@ -29,6 +33,9 @@ function fromForm(f) {
     ingredients: split(f.ingredients),
     allergens: split(f.allergens),
     tags: split(f.tags),
+    diet: split(f.diet),
+    type: f.type === "merch" ? "merch" : "food",
+    stockQty: f.type === "merch" && f.stockQty !== "" ? Number(f.stockQty) : null,
   };
 }
 
@@ -163,6 +170,21 @@ export default function AdminMenuPage() {
               <F label="AI tip" full><input className={inp} value={editing.aiTip} onChange={(e) => setEditing({ ...editing, aiTip: e.target.value })} /></F>
               <label className="flex items-center gap-2 text-[13px] font-semibold"><input type="checkbox" checked={editing.veg} onChange={(e) => setEditing({ ...editing, veg: e.target.checked })} /> Vegetarian</label>
               <label className="flex items-center gap-2 text-[13px] font-semibold"><input type="checkbox" checked={editing.signature} onChange={(e) => setEditing({ ...editing, signature: e.target.checked })} /> Signature item</label>
+              <F label="Type">
+                <select className={inp} value={editing.type} onChange={(e) => setEditing({ ...editing, type: e.target.value })}>
+                  <option value="food">Food / drink</option><option value="merch">Merch (Shop tab)</option>
+                </select>
+              </F>
+              {editing.type === "merch" && (
+                <F label="Stock qty (blank = untracked)">
+                  <input className={inp} type="number" min="0" value={editing.stockQty} onChange={(e) => setEditing({ ...editing, stockQty: e.target.value })} />
+                </F>
+              )}
+              {editing.type !== "merch" && (
+                <F label="Diet tags (auto-detected; add vrat / halal-safe manually)" full>
+                  <input className={inp} value={editing.diet} onChange={(e) => setEditing({ ...editing, diet: e.target.value })} placeholder="jain, vegan, halal-safe" />
+                </F>
+              )}
             </div>
             {err && <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">{err}</div>}
             <div className="mt-5 flex gap-3">

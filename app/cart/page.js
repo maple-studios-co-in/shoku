@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
-import { useCart } from "@/components/Providers";
+import { useCart, useBrand } from "@/components/Providers";
 import { formatINR } from "@/lib/menu";
+import { pairSuggestions } from "@/lib/foodIntel";
 
 function Stepper({ line }) {
   const { setQty } = useCart();
@@ -21,16 +22,18 @@ function Stepper({ line }) {
 export default function CartPage() {
   const router = useRouter();
   const { lines, subtotal, add, ready } = useCart();
-  const [upsell, setUpsell] = useState(null);
+  const { brand } = useBrand();
+  const [menuItems, setMenuItems] = useState([]);
 
   useEffect(() => {
-    fetch("/api/menu/butter-croissant")
+    fetch("/api/menu")
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setUpsell(d))
+      .then((d) => d?.items && setMenuItems(d.items))
       .catch(() => {});
   }, []);
 
-  const showUpsell = upsell && lines.length > 0 && !lines.some((l) => l.id === upsell.id);
+  // Pairing engine: complements what's actually in the bag (drink→bite, bite→drink).
+  const suggestions = brand.aiUpsell === false ? [] : pairSuggestions(lines, menuItems, 3);
 
   if (ready && lines.length === 0) {
     return (
@@ -48,9 +51,9 @@ export default function CartPage() {
     );
   }
 
-  const taxes = Math.round(subtotal * 0.05);
+  const taxes = Math.round((subtotal * (brand.gstRate ?? 5)) / 100); // same rate the server charges
   const reward = Math.round(subtotal * 0.05);
-  const total = subtotal + taxes - reward;
+  const total = Math.max(0, subtotal + taxes - reward);
 
   return (
     <AppShell>
@@ -69,17 +72,19 @@ export default function CartPage() {
           </div>
         ))}
 
-        {showUpsell && (
+        {suggestions.length > 0 && (
           <div className="mx-4 my-4 rounded-2xl border border-brand bg-brand-tint p-3.5">
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-brand-dark">✨ Shoku AI · pairs well with this</div>
-            <div className="mt-2 flex items-center gap-3">
-              <img src={upsell.img} alt={upsell.name} className="h-11 w-11 rounded-xl object-cover" />
-              <div>
-                <div className="text-[13.5px] font-semibold">{upsell.name}</div>
-                <div className="text-[11.5px] text-muted">Flaky & warm · {formatINR(upsell.price)}</div>
+            <div className="text-[10px] font-extrabold uppercase tracking-wider text-brand-dark">✨ Shoku AI · goes well with your bag</div>
+            {suggestions.map((s) => (
+              <div key={s.id} className="mt-2 flex items-center gap-3">
+                <img src={s.img} alt={s.name} className="h-11 w-11 rounded-xl object-cover" />
+                <div className="min-w-0">
+                  <div className="truncate text-[13.5px] font-semibold">{s.name}</div>
+                  <div className="text-[11.5px] text-muted">{s.kcal} kcal · {formatINR(s.price)}</div>
+                </div>
+                <button onClick={() => add(s)} className="ml-auto shrink-0 rounded-lg border border-brand px-3.5 py-1.5 text-[12.5px] font-bold text-brand-dark">Add</button>
               </div>
-              <button onClick={() => add(upsell)} className="ml-auto rounded-lg border border-brand px-3.5 py-1.5 text-[12.5px] font-bold text-brand-dark">Add</button>
-            </div>
+            ))}
           </div>
         )}
 

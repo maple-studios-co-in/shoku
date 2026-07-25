@@ -50,6 +50,10 @@ model Tenant {
   invoiceSeq    Int     @default(0)   // last issued number (atomic increment)
   invoiceYear   Int     @default(0)   // year of the sequence; 0 = legacy (adopt current year, keep seq)
   kotAutoPrint  Boolean @default(true)
+  // Food intelligence + diner experience
+  fssaiLicense  String?               // shown on the storefront trust panel
+  shareEnabled  Boolean @default(true)  // share-to-earn (social post rewards)
+  sharePoints   Int     @default(50)    // points per approved social post
   createdAt   DateTime @default(now())
 
   categories Category[]
@@ -63,6 +67,7 @@ model Tenant {
   banners    Banner[]
   campaigns  Campaign[]
   messages   Message[]
+  socialPosts SocialPost[]
 }
 
 model Table {
@@ -143,6 +148,9 @@ model Item {
   tags        String      @default("[]")
   sizes       String      @default("[]")
   aiTip       String      @default("")
+  diet        String      @default("[]") // JSON tags: jain | vegan | eggless | vrat | halal-safe | diabetic-friendly
+  type        String      @default("food") // food | merch (merch renders in the Shop tab, pickup-only)
+  stockQty    Int?                       // merch stock; null = untracked
   live        Boolean     @default(true)
   sort        Int         @default(0)
   orderItems  OrderItem[]
@@ -158,16 +166,43 @@ model User {
   email     String
   password  String
   role      String   @default("customer") // superadmin | owner | staff | customer
-  points    Int      @default(120)
+  points    Int      @default(0)          // real accounts start at 0; seed sets demo balances explicitly
   phone     String?
+  phoneVerified Boolean @default(false) // set by OTP login; POS phone-lookup trusts verified first
+  guest     Boolean  @default(false)    // guest checkout account (no password); claimed on first OTP login
+  otpHash   String?                     // bcrypt of the active OTP (never the code itself)
+  otpExpires DateTime?
+  otpAttempts Int    @default(0)         // failed OTP tries on the current code; locks the code at 5 (cross-node brute-force cap)
   waOptIn   Boolean  @default(true) // WhatsApp marketing consent
   inviteToken   String?   @unique
   inviteExpires DateTime?
   createdAt DateTime @default(now())
   orders    Order[]
+  socialPosts SocialPost[]
 
   @@unique([tenantId, email])
+  @@unique([tenantId, phone]) // one account per phone per café — prevents the guest-order duplicate-user race
   @@index([tenantId])
+}
+
+// Share-to-earn: a diner submits a social post (Instagram/Snapchat/anything) for
+// a café to approve; approval awards loyalty points (atomic, capped per day).
+model SocialPost {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  orderId   String?
+  url       String                       // link to the post (or "screenshot" note)
+  note      String   @default("")
+  status    String   @default("pending") // pending | approved | rejected
+  points    Int      @default(0)         // awarded on approval (snapshot of tenant.sharePoints)
+  createdAt DateTime @default(now())
+  decidedAt DateTime?
+  decidedBy String?                      // staff email
+  @@index([tenantId, status])
+  @@index([userId])
 }
 
 model Order {

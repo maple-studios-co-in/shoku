@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import AppShell from "@/components/AppShell";
@@ -34,10 +35,10 @@ export default function CheckoutPage() {
   const [points, setPoints] = useState(0);
   const [rewards, setRewards] = useState([]);
   const [redeem, setRedeem] = useState(null); // selected reward
+  const [guestPhone, setGuestPhone] = useState(""); // guest checkout (no account)
+  const [guestName, setGuestName] = useState("");
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.replace("/login?next=/checkout");
-  }, [status, router]);
+  const isGuest = status === "unauthenticated";
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -137,8 +138,19 @@ export default function CheckoutPage() {
     if (!lines.length || placing) return;
     setPlacing(true);
     setError("");
-    const payload = { lines, fulfilment: ful, payment: pay, discountCode: applied?.code || null, rewardId: redeem?.id || null, tableId: table?.id || null, locationLabel: location?.label || null };
+    if (isGuest && !/\d{10}/.test(guestPhone.replace(/\D/g, ""))) {
+      setError("Enter your 10-digit mobile number to order as a guest — your points get saved to it.");
+      setPlacing(false);
+      return;
+    }
+    const payload = {
+      lines, fulfilment: ful, payment: pay, discountCode: applied?.code || null, rewardId: redeem?.id || null,
+      tableId: table?.id || null, locationLabel: location?.label || null,
+      ...(isGuest ? { guest: { phone: guestPhone, name: guestName } } : {}),
+    };
     try {
+      // Guests use direct checkout (pay at counter); the gateway needs an account.
+      if (isGuest) return await directCheckout(payload);
       // Try the real gateway; if it isn't configured (503), use direct checkout.
       const rz = await fetch("/api/payments/razorpay/order", {
         method: "POST",
@@ -158,7 +170,7 @@ export default function CheckoutPage() {
     }
   }
 
-  if (status === "loading" || status === "unauthenticated") {
+  if (status === "loading") {
     return <AppShell nav={false}><div className="grid min-h-[60vh] place-items-center text-sm text-muted">Loading…</div></AppShell>;
   }
 
@@ -174,6 +186,21 @@ export default function CheckoutPage() {
           <div className="mx-4 mt-3 flex items-center gap-2 rounded-xl bg-brand-tint px-3.5 py-3 text-[13px] font-semibold text-brand-dark">
             🍽️ Dine-in · <b>{table.label}</b><span className="ml-auto text-[11px] font-medium opacity-70">served to your table</span>
           </div>
+        )}
+
+        {isGuest && (
+          <Card title="Ordering as a guest">
+            <div className="px-3.5 py-3">
+              <p className="text-[12.5px] text-muted">
+                No account needed — your points save to your number.{" "}
+                <Link href="/login?next=/checkout" className="font-bold text-brand-dark">Sign in instead</Link>
+              </p>
+              <input type="tel" inputMode="numeric" autoComplete="tel" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)}
+                placeholder="Mobile number *" className="mt-2.5 w-full rounded-xl border border-line px-3.5 py-3 text-[14px] outline-none focus:border-brand" />
+              <input value={guestName} onChange={(e) => setGuestName(e.target.value)}
+                placeholder="Name (optional)" className="mt-2 w-full rounded-xl border border-line px-3.5 py-3 text-[14px] outline-none focus:border-brand" />
+            </div>
+          </Card>
         )}
         {!table && <Card title="How would you like it?"><Seg options={FULFILMENT} value={ful} onChange={setFul} /></Card>}
 

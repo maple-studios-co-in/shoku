@@ -6,9 +6,11 @@ import AppShell from "@/components/AppShell";
 import Header from "@/components/Header";
 import { ListItem, RailCard } from "@/components/ProductCard";
 import { useCart } from "@/components/Providers";
+import { DIET_FILTERS, DIET_META } from "@/lib/foodIntel";
 
 export default function MenuPage() {
   const [cat, setCat] = useState("all");
+  const [diet, setDiet] = useState(null); // dietary lens: null = everything
   const [q, setQ] = useState("");
   const [data, setData] = useState({ categories: [], items: [] });
   const [banners, setBanners] = useState([]);
@@ -37,9 +39,11 @@ export default function MenuPage() {
       .catch(() => {});
   }, [setTable]);
 
-  const { categories, items } = data;
+  const { categories } = data;
+  const items = (data.items || []).filter((i) => i.type !== "merch"); // merch lives in the Shop tab
   const chips = [{ id: "all", label: "All" }, ...categories];
-  const picks = items.filter((i) => i.signature || i.rating >= 4.7).slice(0, 6);
+  const dietMatch = (i) => !diet || (Array.isArray(i.diet) && i.diet.includes(diet));
+  const picks = items.filter((i) => (i.signature || i.rating >= 4.7) && dietMatch(i)).slice(0, 6);
   const shownCats = cat === "all" ? categories : categories.filter((c) => c.id === cat);
 
   // Search: match against name, description, category, tags and ingredients.
@@ -53,7 +57,7 @@ export default function MenuPage() {
       .filter(Boolean)
       .some((v) => qRegex.test(String(v)));
   const visibleCats = shownCats
-    .map((c) => ({ ...c, list: items.filter((i) => i.category === c.id && matches(i)) }))
+    .map((c) => ({ ...c, list: items.filter((i) => i.category === c.id && matches(i) && dietMatch(i)) }))
     .filter((c) => c.list.length > 0);
 
   if (!loading && data.suspended) {
@@ -134,6 +138,28 @@ export default function MenuPage() {
           </button>
         ))}
       </div>
+
+      <div className="no-scrollbar mt-1.5 flex gap-1.5 overflow-x-auto px-4 pb-1.5">
+        {DIET_FILTERS.map((d) => (
+          <button
+            key={d}
+            onClick={() => setDiet(diet === d ? null : d)}
+            aria-pressed={diet === d}
+            className={`shrink-0 rounded-full border px-3 py-1.5 text-[11.5px] font-semibold transition-colors ${
+              diet === d ? "border-brand bg-brand text-white" : "border-line bg-white text-muted"
+            }`}
+          >
+            {DIET_META[d].emoji} {DIET_META[d].label}
+          </button>
+        ))}
+      </div>
+
+      {diet && !loading && visibleCats.length === 0 && !searching && (
+        <div className="px-8 py-12 text-center">
+          <p className="text-sm font-bold">No {DIET_META[diet].label} items on this menu yet</p>
+          <button onClick={() => setDiet(null)} className="mt-3 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white">Show everything</button>
+        </div>
+      )}
 
       {loading && <div className="px-4 py-10 text-center text-sm text-muted">Loading menu…</div>}
 

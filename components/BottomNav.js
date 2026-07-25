@@ -7,6 +7,7 @@ import { useCart } from "./Providers";
 const TABS = [
   { href: "/menu", label: "Menu", icon: "🏠" },
   { href: "/ai", label: "Shoku AI", icon: "✨" },
+  { href: "/shop", label: "Shop", icon: "🛒" },
   { href: "/cart", label: "Bag", icon: "🛍️" },
   { href: "/account", label: "Account", icon: "👤" },
 ];

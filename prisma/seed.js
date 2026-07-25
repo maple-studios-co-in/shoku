@@ -87,7 +87,7 @@ async function seedOrders(tenant, buyers) {
   return made;
 }
 
-async function ensureUser({ email, name, role, tenantId, points = 120, phone = null }) {
+async function ensureUser({ email, name, role, tenantId, points = 0, phone = null }) {
   const found = await prisma.user.findFirst({ where: { email, tenantId: tenantId ?? null } });
   if (found) return found;
   // Never seed a known default password in production. Provide SEED_ADMIN_PASSWORD

@@ -3,6 +3,22 @@
 import Link from "next/link";
 import { useCart } from "./Providers";
 import { formatINR } from "@/lib/menu";
+import { DIET_META } from "@/lib/foodIntel";
+
+// Up to `max` compact dietary chips (jain/vegan/low-sugar…), quietly styled.
+export function DietBadges({ diet, max = 3 }) {
+  const tags = (Array.isArray(diet) ? diet : []).filter((t) => DIET_META[t]).slice(0, max);
+  if (!tags.length) return null;
+  return (
+    <span className="ml-1.5 inline-flex flex-wrap gap-1 align-middle">
+      {tags.map((t) => (
+        <span key={t} className="rounded-full bg-canvas px-1.5 py-0.5 text-[9px] font-bold text-brand-dark">
+          {DIET_META[t].emoji} {DIET_META[t].label}
+        </span>
+      ))}
+    </span>
+  );
+}
 
 function VegBadge({ veg }) {
   return (
@@ -40,6 +56,7 @@ export function ListItem({ item }) {
         <div className="flex items-end justify-between">
           <div>
             <VegBadge veg={item.veg} />
+            <DietBadges diet={item.diet} />
             <div className="text-[11px] text-muted">{item.kcal} kcal · {item.caffeine}mg caffeine</div>
           </div>
           <div className="flex items-center gap-3">

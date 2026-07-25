@@ -18,6 +18,7 @@ const NAV = [
   { href: "/admin/discounts", label: "Discounts", icon: "🏷️" },
   { href: "/admin/loyalty", label: "Loyalty", icon: "🎁" },
   { href: "/admin/marketing", label: "Marketing", icon: "📲" },
+  { href: "/admin/shares", label: "Share posts", icon: "📸" },
   { href: "/admin/banners", label: "Banners", icon: "🖼️" },
   { href: "/admin/branding", label: "Branding", icon: "🎨" },
   { href: "/admin/settings", label: "Settings", icon: "⚙️" },

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin";
 import { prisma, parseItem } from "@/lib/db";
+import { classifyDiet } from "@/lib/foodIntel";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,13 @@ export async function PUT(req, { params }) {
       tags: JSON.stringify(b.tags || []),
       sizes: JSON.stringify(sizes),
       aiTip: b.aiTip || "",
+      diet: JSON.stringify(classifyDiet({
+        ingredients: Array.isArray(b.ingredients) ? b.ingredients : [],
+        veg: b.veg !== false, sugar: Number(b.sugar) || 0, protein: Number(b.protein) || 0,
+        categoryLabel: b.categoryLabel || "", diet: Array.isArray(b.diet) ? b.diet : [],
+      })),
+      type: b.type === "merch" ? "merch" : "food",
+      stockQty: b.type === "merch" && Number.isFinite(Number(b.stockQty)) ? Math.max(0, Math.round(Number(b.stockQty))) : null,
       live: b.live !== false,
     },
     include: { category: true },
