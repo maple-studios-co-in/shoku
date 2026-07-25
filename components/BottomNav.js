@@ -17,7 +17,7 @@ export default function BottomNav() {
   const { count } = useCart();
 
   return (
-    <nav className="sticky bottom-0 z-40 grid grid-cols-4 border-t border-line bg-white/90 backdrop-blur-md">
+    <nav className="sticky bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white/90 backdrop-blur-md">
       {TABS.map((t) => {
         const active = t.href === "/" ? pathname === "/" : pathname.startsWith(t.href);
         return (
