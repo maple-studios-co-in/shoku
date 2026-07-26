@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireSuperadmin } from "@/lib/admin";
 import { prisma } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
+import { encryptSecret } from "@/lib/crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export async function PATCH(req, { params }) {
   const data = {};
   for (const k of allowed) if (k in b) data[k] = b[k];
   // AI overrides: empty string clears (falls back to plan default / env).
-  if ("aiApiKey" in b) data.aiApiKey = String(b.aiApiKey || "").trim() || null;
+  if ("aiApiKey" in b) data.aiApiKey = encryptSecret(String(b.aiApiKey || "").trim() || null);
   if ("aiModel" in b) data.aiModel = String(b.aiModel || "").trim() || null;
   if ("aiBaseUrl" in b) data.aiBaseUrl = String(b.aiBaseUrl || "").trim() || null;
 

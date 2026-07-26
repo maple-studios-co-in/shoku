@@ -4,28 +4,58 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 
 jobs:
-  build:
-    name: Build
+  test-build:
+    name: Test + Build
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shoku
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      # Dummy values so Prisma + Next can build without real secrets.
-      DATABASE_URL: "file:./dev.db"
-      NEXTAUTH_URL: "http://localhost:3000"
-      NEXTAUTH_SECRET: "ci-dummy-secret"
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/shoku
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-placeholder-secret
+      NEXT_PUBLIC_SITE_URL: https://getshoku.com
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install dependencies
         run: npm ci
-
+      - name: Prisma generate + schema push
+        run: |
+          npx prisma generate
+          npx prisma db push --skip-generate
+      - name: Unit tests
+        run: npx vitest run
       - name: Build (prisma generate + next build)
         run: npm run build
+
+  security-audit:
+    name: Security audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # High/critical advisory report. NON-blocking for now — make this a hard gate
+      # (drop continue-on-error) once the Next.js / next-auth upgrade lands.
+      - name: npm audit (high+)
+        continue-on-error: true
+        run: npm audit --audit-level=high
