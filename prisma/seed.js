@@ -117,6 +117,8 @@ async function main() {
   await seedMenu(cbtl, ITEMS);
   const owner1 = await ensureUser({ email: "demo@shoku.app", name: "Maple Studios", role: "owner", tenantId: cbtl.id, points: 1240 });
   const c1 = [
+    // Documented demo diner for feature testing (email+password OR phone-OTP).
+    await ensureUser({ email: "demo-diner@shoku.app", name: "Demo Diner", role: "customer", tenantId: cbtl.id, points: 260, phone: "+919899900000" }),
     await ensureUser({ email: "aarav@example.com", name: "Aarav Sharma", role: "customer", tenantId: cbtl.id, points: 320, phone: "+919800000001" }),
     await ensureUser({ email: "diya@example.com", name: "Diya Patel", role: "customer", tenantId: cbtl.id, points: 540, phone: "+919800000002" }),
   ];

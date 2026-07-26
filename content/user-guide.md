@@ -66,21 +66,22 @@ Tiers are also used to target marketing (for example, "Gold & above").
 This section covers the customer storefront. You reach it by opening your café's link or scanning a table QR code. No app install is needed — it works in your phone's browser.
 
 ### 3.1 Getting around
-The storefront has a bottom navigation bar with four tabs:
+The storefront has a bottom navigation bar with five tabs:
 
 - **Menu** (🏠) — browse and order.
 - **Shoku AI** (✨) — the AI ordering assistant.
+- **Shop** (🛒) — the café's merch shelf (beans, mugs, tees), picked up at the counter.
 - **Bag** (🛍️) — your cart; a small badge shows how many items are in it.
-- **Account** (👤) — your profile, points, tier, rewards and order history.
+- **Account** (👤) — your profile, points, tier, rewards, caffeine tracker and order history.
 
 A header at the top shows the café's name and pickup location and a quick link to your bag.
 
 ### 3.2 Creating an account / signing in
-You can browse the menu without signing in, but you must be signed in to place an order, earn points and redeem rewards.
+You can browse the menu without signing in, but you must be signed in (or order as a guest with your number) to place an order, earn points and redeem rewards. There are three ways in:
 
-1. Tap **Account**, then **Sign in** or **Create an account**.
-2. To register, enter your name, email and a password (at least 6 characters) and tap **Create account**. You are signed in automatically.
-3. Returning customers tap **Sign in** and enter their email and password.
+1. **Phone (recommended)** — on the sign-in screen, the **📱 Phone** tab is the default. Enter your mobile number, tap **Send login code**, then type the 6-digit code you receive by SMS. Your points and orders are tied to your number, so they follow you online **and** at the counter.
+2. **Guest checkout** — you don't have to sign in first. Add items, go to checkout, and just enter your mobile number under "Ordering as a guest". Your points are saved to that number, and when you later sign in by phone, those orders and points are already there.
+3. **Email** — tap the **✉️ Email** tab to sign in or create an account with an email and password. (Google sign-in appears when the café has enabled it.)
 
 ### 3.3 Browsing the menu
 On the **Menu** tab you'll see, from top to bottom:
@@ -89,10 +90,13 @@ On the **Menu** tab you'll see, from top to bottom:
 - **Sale banners** — promotional images the café has uploaded; some are tappable.
 - **Shoku AI card** — "Not sure what to order?" tap it to open the AI assistant.
 - **Category chips** — tap **All** or a category (for example "Ice Blended", "Hot Coffee", "Tea") to filter.
+- **Dietary filters** — a second row of chips: **Jain, Vegan, Eggless, Vrat-safe, Halal, Diabetic-friendly, Low sugar, High protein**. Tap one to show only items that match (tap again to clear). Every item also carries small badges for the diets it fits, so you can see at a glance what's safe for you.
 - **Picked for you** — an AI-curated rail of signature and top-rated items (shown when viewing "All").
 - **Category lists** — every item with its photo, name, price and quick "add" control.
 
 Tap any item to open its detail page.
+
+> **How dietary tags work:** Shoku reads each dish's ingredients to work out tags like *vegan*, *eggless* and *jain* — and it's deliberately cautious (an item with mayonnaise, gelatin or milk is never marked vegan). Religious tags like *Halal* and *Vrat-safe* are set by the café itself. If a diet matters to your health or faith, still confirm with the café — the tags are a helpful guide, not a guarantee.
 
 ### 3.4 The item page and food intelligence
 Each item's page shows its photo, rating, calories, price and description, plus a **"Know your cup ✨ SHOKU AI"** panel — Shoku's signature **food intelligence**:
@@ -102,6 +106,9 @@ Each item's page shows its photo, rating, calories, price and description, plus 
 - **⚠️ Allergens** — listed plainly, or "No major allergens".
 - **🥗 Nutrition (regular)** — calories, protein, sugar and caffeine.
 - **💡 AI tip** — a helpful suggestion from Shoku (when the café has added one).
+- **🛡️ Food safety** — the café's FSSAI licence number (when provided), so you know it's a registered kitchen.
+
+Just under the title you'll also see the item's **dietary badges**, and — for a sweeter drink that has a lighter sibling on the same menu — a green **🍃 Lighter swap** suggestion ("…has 78% less sugar"). Tap it to jump to the lighter option.
 
 Below that you customise and add to your bag:
 
@@ -120,7 +127,7 @@ The **Shoku AI** tab is a chat that knows the whole menu — including caffeine,
 The assistant understands mood, time of day and cravings, and matches them to items based on tags and nutrition.
 
 ### 3.6 Cart & checkout
-Open your **Bag**, review the items, then continue to **Checkout**. On the checkout screen you can:
+Open your **Bag** and review the items. Near the top you'll often see a **"✨ Shoku AI · goes well with your bag"** card suggesting a couple of items that pair nicely with what you've added (a bite to go with your coffee, or a drink to go with your snack) — tap **Add** to include one. Then continue to **Checkout**. On the checkout screen you can:
 
 1. **Choose how you'd like it** — Pickup, Dine-in or Delivery. (If you arrived by scanning a table QR, this is fixed to Dine-in at your table.)
 2. **Pickup/Delivery time** — ASAP (about 12 minutes) or schedule; the café address is shown.
@@ -130,7 +137,7 @@ Open your **Bag**, review the items, then continue to **Checkout**. On the check
 6. Review the bill: subtotal, taxes & charges, an AI loyalty reward credit, any promo discount and any redeemed reward, then the **Total**.
 7. Tap **Place order**.
 
-After ordering you land on an **Order placed!** screen with your order number (shown as `#PS-XXXXXX`) and an estimated ready time.
+After ordering you land on an **Order placed!** screen with your order number (shown as `#PS-XXXXXX`) and an estimated ready time. This screen also invites you to **leave feedback** ([§3.9](#39-leaving-feedback)) and to **share & earn** ([§3.11](#311-share--earn)).
 
 ### 3.7 Dine-in: ordering from your table by QR
 Cafés can put a printed **QR code** on each table.
@@ -154,8 +161,26 @@ After an order is placed, the confirmation screen invites you to rate your exper
 
 Your rating and comment go straight to the café owner's Feedback dashboard.
 
-### 3.10 Your account & order history
-The **Account** tab shows your name and email, your Points / Orders / Tier stats, your unlockable rewards, and your **Recent orders** (each with its items, total, fulfilment type and current status). You can sign out from here. If you also happen to be café staff or platform staff, shortcut links to the admin or platform consoles appear here too.
+### 3.10 Your account, caffeine tracker & order history
+The **Account** tab shows your name, your Points / Orders / Tier stats, your unlockable rewards, and your **Recent orders** (each with its items, total, fulfilment type and current status). You can sign out from here. If you also happen to be café staff or platform staff, shortcut links to the admin or platform consoles appear here too.
+
+It also shows a **☕ Today's caffeine** meter — the total caffeine (in mg) from the drinks you've ordered today, against the widely-cited 400 mg daily guideline. It resets each morning. This is a friendly guide only, not medical advice.
+
+### 3.11 Share & earn
+Cafés can reward you for posting about your order on social media (Instagram, Snapchat — anywhere).
+
+1. After placing an order, tap **"📸 Snap it, share it, earn points"** on the confirmation screen (or it appears there when the café has share rewards switched on).
+2. Post your photo/story, then tap **I posted it** and paste the **link** to your post.
+3. Tap **Submit for review**. The café checks the post and, once approved, the points land in your account.
+
+You can submit **one share per day**. Points are awarded only after the café approves your post.
+
+### 3.12 The Shop tab — café merch
+The **🛒 Shop** tab is where a café sells merchandise — coffee beans, mugs, tote bags, tees.
+
+1. Tap **Shop** to see what's available, with prices and stock ("Only 2 left" / "Sold out").
+2. Add items to your bag just like food, and check out normally.
+3. Merch is **collected at the counter** with your order — there's no shipping.
 
 ---
 
