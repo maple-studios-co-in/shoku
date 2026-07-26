@@ -26,7 +26,10 @@ One Next.js app serves **three surfaces**, chosen by hostname:
 - **One app, one database, multi-tenant by row.** Every table carries a `tenantId`; every query
   filters on it. There is no DB-per-café — isolation is enforced in application code.
 - **The hostname picks the tenant.** `middleware.js` reads the subdomain and sets an
-  `x-tenant-slug` header; server code resolves the tenant from it.
+  `x-tenant-slug` header; server code resolves the tenant from it. (The base domain is the
+  `BASE_DOMAIN` env var — `getshoku.com` in production; locally you just use `localhost`, which
+  resolves to the default `cbtl` café. Note the repo is mid-rebrand: the npm package is still
+  `pista` and a couple of docs carry the old name.)
 - **Auth is NextAuth (JWT).** The token carries `role` + `tenantId`; route handlers read those to
   authorize. Four roles: `superadmin`, `owner`, `staff`, `customer`.
 - **AI is heuristic-first, LLM-optional.** Everything works with zero external services; adding an
@@ -133,14 +136,20 @@ cp .env.example .env      # set DATABASE_URL to the Postgres above; NEXTAUTH_SEC
 # 3. install + schema + seed
 npm install
 npm run setup             # prisma db push + seed (2 demo cafés + accounts)
-node scripts/classify-diet.js
-node scripts/demo-diner-setup.js   # optional: screenshot-ready demo state
+node scripts/classify-diet.js               # tag menu items with diet labels
+node scripts/seed-demo-data.js cbtl 30      # optional: ~30 days of realistic orders
 # 4. run
 npm run dev               # http://localhost:3000
 npx vitest run            # tests
 ```
-**Demo logins** (password `password`): diner `demo-diner@shoku.app` (or phone `9899900000`),
-owner `demo@shoku.app`, superadmin `super@shoku.app`. Localhost resolves to the `cbtl` café.
+**Demo logins** (all password `password`): diner `aarav@example.com` (phone `+919800000001`)
+or `diya@example.com`, owner `demo@shoku.app`, superadmin `super@shoku.app`. Localhost resolves
+to the `cbtl` café.
+
+> Note: the `feat/diner-polish-and-docs` branch adds a dedicated demo diner
+> (`demo-diner@shoku.app` / phone `9899900000`), a `scripts/demo-diner-setup.js` state-seeder,
+> and `docs/FEATURE-TESTING-PLAN.md` (per-feature test steps + screenshots). Once that branch
+> merges to main, prefer those.
 
 ## 10. First-week reading path (for the intern)
 
@@ -149,7 +158,8 @@ owner `demo@shoku.app`, superadmin `super@shoku.app`. Localhost resolves to the 
    `lib/orders.js` `createOrder`. This teaches pricing, loyalty, tenancy, and payment status.
 3. Trace **auth**: `lib/auth.js` + `lib/otp.js` + `lib/admin.js`. Log in as each role.
 4. Read [`content/developer-guide.md`](../content/developer-guide.md) (the deep reference) and
-   [`FEATURE-TESTING-PLAN.md`](FEATURE-TESTING-PLAN.md) (what each feature does, with screenshots).
+   [`REGRESSION-TEST-PLAN.md`](REGRESSION-TEST-PLAN.md) (what to test each release). A
+   feature-by-feature test guide with screenshots lands with the `diner-polish` branch.
 5. Skim [`docs/*`](.) — the map below.
 
 ## 11. Doc map — which doc for what
@@ -159,7 +169,7 @@ owner `demo@shoku.app`, superadmin `super@shoku.app`. Localhost resolves to the 
 | **ARCHITECTURE.md** (this) | The mental model + onboarding |
 | `content/developer-guide.md` | Deep technical reference (data model, APIs, internals, gotchas) |
 | `content/user-guide.md` | How the app works for diners / café owners / platform staff |
-| `FEATURE-TESTING-PLAN.md` | Per-feature how-to-test + expected result + screenshots |
+| `FEATURE-TESTING-PLAN.md` *(on `diner-polish` branch)* | Per-feature how-to-test + screenshots |
 | `POS-PHASE1-SPEC.md` | The POS build spec |
 | `POSTGRES-CUTOVER.md` | Prod Postgres migration runbook |
 | `REGRESSION-TEST-PLAN.md` | Release regression suite |
