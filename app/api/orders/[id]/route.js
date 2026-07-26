@@ -19,9 +19,9 @@ export async function PATCH(req, { params }) {
   if (!ALLOWED.includes(body.status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
 
   const res = await prisma.order.updateMany({
-    where: { id: params.id, tenantId: gate.tenantId },
+    where: { id: (await params).id, tenantId: gate.tenantId },
     data: { status: body.status },
   });
   if (res.count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ id: params.id, status: body.status });
+  return NextResponse.json({ id: (await params).id, status: body.status });
 }

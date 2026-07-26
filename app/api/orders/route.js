@@ -59,9 +59,17 @@ export async function POST(req) {
     session = { user: { id: guestUser.id, tenantId: tenant.id, role: "customer" } };
   }
 
-  const result = await createOrder(session, body, { paymentStatus: "paid" });
+  // This direct path is the NO-GATEWAY fallback (the Razorpay flow confirms payment
+  // elsewhere). In production, never silently mark an unpaid order as "paid" — a
+  // misconfigured gateway would give away free food. Default to PENDING (pay at the
+  // counter); a café can opt back into mock-paid with ALLOW_MOCK_CHECKOUT=1.
+  const mockPaidAllowed = process.env.NODE_ENV !== "production" || process.env.ALLOW_MOCK_CHECKOUT === "1";
+  if (!mockPaidAllowed) {
+    console.warn("[orders] no payment gateway configured in production — placing order as 'pending' (pay at counter)");
+  }
+  const result = await createOrder(session, body, { paymentStatus: mockPaidAllowed ? "paid" : "pending" });
   if (result.error) return NextResponse.json({ error: result.error }, { status: result.status || 400 });
 
   const { order } = result;
-  return NextResponse.json({ id: order.id, total: order.total, status: order.status });
+  return NextResponse.json({ id: order.id, total: order.total, status: order.status, paymentStatus: order.paymentStatus });
 }

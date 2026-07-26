@@ -22,8 +22,8 @@ const STEPS = [
 
 const TESTI = [
   ["We dropped the delivery apps for our regulars. Shoku paid for itself in a month — and we finally own our customer list.", "Priya Nair", "Owner · Brew & Bloom", "1438761681033-6461ffad8d80"],
-  ["The AI suggestions genuinely lift our average order. Customers add a pastry it recommends more often than not.", "Rohan Mehta", "Founder · Third Wave Roasters", "1500648767791-00dcc994a43e"],
-  ["Live in a week, on our own domain, in our own brand. It feels like an app we built, not a marketplace we rent.", "Ananya Rao", "Co-owner · Chai & Co.", "1544005313-94ddf0286df2"],
+  ["The AI suggestions genuinely lift our average order. Customers add a pastry it recommends more often than not.", "Rohan Mehta", "Founder · Kaapi House", "1500648767791-00dcc994a43e"],
+  ["Live in a week, on our own domain, in our own brand. It feels like an app we built, not a marketplace we rent.", "Ananya Rao", "Co-owner · Cardamom & Co.", "1544005313-94ddf0286df2"],
 ];
 
 const PRICES = [
@@ -32,7 +32,9 @@ const PRICES = [
   ["Enterprise", "Custom", "", "Chains, SLAs, custom domains.", ["Everything in Growth", "Custom domain & SSO", "Onboarding & success", "Priority support"], false],
 ];
 
-const BRANDS = ["Coffee Bean & Tea Leaf", "Blue Tokai", "Third Wave", "Chai & Co.", "Nothing Before Coffee", "Roastery"];
+// Illustrative café names (not real brands) — placeholders until we have signed,
+// permission-granted customer logos to display.
+const BRANDS = ["Brew & Bloom", "Kaapi House", "The Daily Grind", "Cardamom & Co.", "Filter Room", "Peaberry"];
 
 const STATS = [
   { n: "0%", l: "commission, ever" },
@@ -225,7 +227,7 @@ export default function Landing() {
 
       {/* LOGOS */}
       <section className="logos reveal">
-        <div className="lab">Trusted by cafés &amp; coffee chains</div>
+        <div className="lab">Built for independent cafés &amp; growing chains</div>
         <div className="logo-marquee">
           <div className="logo-track">
             {[...BRANDS, ...BRANDS].map((b, i) => <span className="brandname" key={i}>{b}</span>)}

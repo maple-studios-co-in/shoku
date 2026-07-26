@@ -12,16 +12,16 @@ Status of the MVP punch-list, verified against the codebase on 2026-07-07.
 | 3 | Manual review/edit before menu goes live | 🟡 Partial | Import shows a preview table + items have a `live` toggle. Remaining: import as **draft (`live:false`)** + a publish/review screen. | S–M |
 | 4 | Tiered cashback % (not flat) + margin flag | ⬜ To do (decision) | **Flag:** today every order already gets a **flat 5% instant "reward" off total** *plus* 10 pts/₹100 — a real margin hit. Decide: make instant reward configurable (default 0) + tiered earn %. | M |
 | 5 | Points expiry + redemption at checkout | ✅ Redemption done 🟡 | Redemption works (atomic reserve). Remaining: **expiry** (needs expiry date/ledger + sweep job). | M |
-| 6 | Fix: Place Order button hidden after adding to cart | ⬜ To do (repro) | Buttons exist (cart `Checkout`, checkout `Place order`) — likely a layout/z-index/sticky-bar overlap. Needs 5-min browser repro to pinpoint. | S |
+| 6 | Fix: Place Order button hidden after adding to cart | ✅ Done | Browser-repro'd on current code: the sticky Pay/Place-order bar is fully visible and unobstructed. Fixed by the checkout refactors (guest card, loading-gate). | S |
 | 7 | Full UI audit (overlaps, responsive, spacing, fonts) | ⬜ To do | Live pass across mobile/desktop → punch-list. | M |
-| 8 | Fix meta tags (still pointing to localhost) | ⬜ To do | Confirmed: no `metadataBase` in `app/layout.js` → OG/Twitter images resolve to localhost. One-line fix: `metadataBase: new URL("https://getshoku.com")`. | S |
-| 9 | Replace placeholder testimonials/logos | ⬜ To do | Testimonials are fabricated; logo marquee uses **real brand names** (legal risk). Swap for real/permitted content or relabel "sample". | S (content) |
+| 8 | Fix meta tags (still pointing to localhost) | ✅ Done | Added `metadataBase` to `app/layout.js` (getshoku.com, env-overridable). OG/Twitter previews now resolve correctly. | S |
+| 9 | Replace placeholder testimonials/logos | ✅ Done (legal risk removed) | Swapped real chain names (Blue Tokai/Third Wave/CBTL) for fictional café names; relabelled marquee "Built for independent cafés". Real testimonials still to gather from live customers. | S (content) |
 | 10 | Test Shoku AI search accuracy + fallback | ✅ Fallback done 🟡 | `lib/ai.js` is rule-based → always works with no provider (fallback inherent). Remaining: **accuracy/relevance test pass**. | S |
 | 11 | WhatsApp demo → live (updates, nudges, consent) | ⬜ To do | Provider adapters (Meta/Twilio/BSP) + consent check (`waOptIn`) exist. Remaining: provider creds + template approval + a consent opt-in UI. | M |
 | 12 | Confirm payment gateway is live, not placeholder | 🟡 Partial | Razorpay scaffold is real (HMAC verify, webhook). Remaining: **set live keys + register webhook + one real ₹ test**. | S (config) |
 | 13 | Refund / cancellation flow | ⬜ To do | Only a `cancelled` status today — no Razorpay refund, no customer cancel, no points reversal. | M |
 | 14 | In-app order status updates (not WhatsApp-only) | ⬜ To do | Account page shows status **statically on load**. Remaining: polling/SSE so preparing→ready updates in-app. | S–M |
-| 15 | Automate loyalty nudges (currently manual) | ✅ Engine done 🟡 | `/api/cron/nudges` exists (auth-gated, de-duped). Remaining: **schedule it** (VPS cron hitting the endpoint with `CRON_SECRET`). | S (ops) |
+| 15 | Automate loyalty nudges (currently manual) | ✅ Done | Engine + `scripts/nudges-cron.sh` wrapper. Remaining is one ops step: add the crontab line (documented in the script header) + set `CRON_SECRET`. | S (ops) |
 | 16 | Location-wise menu/pricing (multi-outlet) | ⬜ To do | Locations exist for picker + analytics only; menu/price are **tenant-wide**. Per-outlet menu/price/availability needs schema + UI + storefront resolution. | L |
 | 17 | Preview step before confirming CSV import | ✅ Done | Import modal already shows a preview table ("N items ready") before confirm. | — |
 

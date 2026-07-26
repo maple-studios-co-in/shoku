@@ -12,7 +12,7 @@ async function owned(id, tenantId) {
 export async function PATCH(req, { params }) {
   const gate = await requireAdmin();
   if (gate.error) return NextResponse.json({ error: gate.error }, { status: gate.status });
-  if (!(await owned(params.id, gate.tenantId))) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!(await owned((await params).id, gate.tenantId))) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   let body;
   try {
@@ -24,14 +24,14 @@ export async function PATCH(req, { params }) {
   if ("live" in body) data.live = !!body.live;
   if ("price" in body) data.price = Math.max(0, Number(body.price) || 0);
 
-  const item = await prisma.item.update({ where: { id: params.id }, data, include: { category: true } });
+  const item = await prisma.item.update({ where: { id: (await params).id }, data, include: { category: true } });
   return NextResponse.json(parseItem(item));
 }
 
 export async function PUT(req, { params }) {
   const gate = await requireAdmin();
   if (gate.error) return NextResponse.json({ error: gate.error }, { status: gate.status });
-  if (!(await owned(params.id, gate.tenantId))) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!(await owned((await params).id, gate.tenantId))) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   let b;
   try {
@@ -43,7 +43,7 @@ export async function PUT(req, { params }) {
   const sizes = Array.isArray(b.sizes) && b.sizes.length ? b.sizes : [{ name: "Regular", price }];
 
   const item = await prisma.item.update({
-    where: { id: params.id },
+    where: { id: (await params).id },
     data: {
       name: b.name,
       categoryId: b.categoryId,
@@ -79,15 +79,15 @@ export async function PUT(req, { params }) {
 export async function DELETE(_req, { params }) {
   const gate = await requireAdmin();
   if (gate.error) return NextResponse.json({ error: gate.error }, { status: gate.status });
-  if (!(await owned(params.id, gate.tenantId))) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!(await owned((await params).id, gate.tenantId))) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const refs = await prisma.orderItem.count({ where: { itemId: params.id } });
+  const refs = await prisma.orderItem.count({ where: { itemId: (await params).id } });
   if (refs > 0) {
     return NextResponse.json(
       { error: "This item appears in past orders. Toggle it off (hide) instead of deleting." },
       { status: 409 }
     );
   }
-  await prisma.item.delete({ where: { id: params.id } });
+  await prisma.item.delete({ where: { id: (await params).id } });
   return NextResponse.json({ ok: true });
 }

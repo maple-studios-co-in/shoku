@@ -5,7 +5,7 @@
 This guide documents the system as it actually exists in the codebase. App root: `shoku/`.
 
 - **Framework:** Next.js 14 (App Router) + React 18
-- **Database:** Prisma ORM over SQLite
+- **Database:** Prisma ORM over PostgreSQL
 - **Auth:** NextAuth (Credentials provider, JWT sessions, bcrypt passwords)
 - **Styling:** Tailwind CSS (brand colors driven by CSS variables for live theming)
 - **AI:** heuristic-first, LLM-optional (zero external dependency required)
@@ -57,9 +57,9 @@ Shoku is a single Next.js 14 App Router application. Hostname determines which o
 
 > `requireAdmin()` accepts roles `owner`, `staff`, and `admin` (legacy alias). The superadmin is deliberately **excluded** from café-admin gates and from logging in on café hosts.
 
-### Why SQLite + shared DB
+### Why one shared Postgres DB
 
-The whole platform runs from one SQLite file. This keeps provisioning trivial (creating a café is a set of `INSERT`s, not a migration) and makes the entire system demonstrable on a laptop with zero external services. The trade-off — and the gotchas it creates — is covered in [§12](#12-conventions--gotchas).
+The whole platform runs from one Postgres database (multi-tenant by `tenantId`, not a DB-per-café). This keeps provisioning trivial (creating a café is a set of `INSERT`s, not a migration) and analytics cross-tenant. Early prototypes used a single SQLite file; the app migrated to Postgres for production-grade backups, concurrency and managed hosting (`scripts/migrate-sqlite-to-postgres.js` did the one-time data copy). Several columns are still JSON-encoded as `String` for portability; see [§12](#12-conventions--gotchas).
 
 ---
 
@@ -113,7 +113,7 @@ shoku/
 
 ## 3. Data model
 
-Defined in `prisma/schema.prisma`. SQLite is the datasource. Several columns are **JSON encoded as `String`** (SQLite has no native array/JSON type) and are parsed at the application layer — these are flagged below.
+Defined in `prisma/schema.prisma`. PostgreSQL is the datasource. Several columns are **JSON encoded as `String`** (a portability choice carried over from the SQLite prototype) and are parsed at the application layer — these are flagged below.
 
 ### Tenant
 
@@ -666,7 +666,7 @@ Copy `.env.example` → `.env` and fill in real values. Never commit `.env`.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `DATABASE_URL` | **Yes** | Prisma datasource. Local: `file:./dev.db`. (Schema provider is `sqlite`.) |
+| `DATABASE_URL` | **Yes** | Prisma datasource (Postgres). Local: a Postgres URL; prod: managed Postgres. (Schema provider is `postgresql`.) |
 | `NEXTAUTH_SECRET` | **Yes** (prod) | Signs the JWT session. `openssl rand -base64 32`. |
 | `NEXTAUTH_URL` | **Yes** (prod) | Canonical app URL, e.g. `https://getshoku.com`. |
 | `BASE_DOMAIN` | Recommended | Apex domain used by middleware/auth to parse `<slug>.BASE_DOMAIN`. Default `getshoku.com`. |
@@ -700,7 +700,7 @@ npm run dev          # http://localhost:3000
 `npm run setup` = `prisma db push && node prisma/seed.js`. You can also run them separately:
 
 ```bash
-npm run db:push      # prisma db push  (creates/updates the SQLite schema)
+npm run db:push      # prisma db push  (creates/updates the Postgres schema)
 npm run seed         # node prisma/seed.js
 ```
 
@@ -727,9 +727,9 @@ Generates ~350–450 paid orders over the window with café-realistic hourly pea
 
 `localhost` resolves to the default tenant. To exercise real subdomain routing locally, map café hosts to loopback (e.g. `cbtl.localhost`, `bluetokai.localhost` via `/etc/hosts`) and set `BASE_DOMAIN=localhost` — or just rely on `DEFAULT_TENANT_SLUG` for single-tenant testing.
 
-### Rebuilding the SQLite schema
+### Rebuilding the schema
 
-For additive changes SQLite sometimes **rebuilds tables** (e.g. adding a unique column). Use:
+Most changes apply cleanly with `prisma db push`. A destructive change (dropping a column, tightening a constraint on existing data) prompts for confirmation; use:
 
 ```bash
 npx prisma db push --accept-data-loss
@@ -827,14 +827,14 @@ As superadmin → upload via `POST /api/pitch` (multipart `file`, optional `kind
 
 ## 12. Conventions & gotchas
 
-- **SQLite stores arrays/JSON as `String`.** `Item.ingredients/allergens/tags/sizes`, `Tenant.tiers/waConfig`, `AuditLog.meta`, and `Campaign`/`Message` payloads are JSON strings. Read them through helpers (`parseItem`, `parseTiers`, `parseCfg`) which fall back to safe defaults on parse failure. Always `JSON.stringify` on write.
+- **Arrays/JSON are stored as `String`.** `Item.ingredients/allergens/tags/sizes/diet`, `Tenant.tiers/waConfig/locations`, `AuditLog.meta`, and `Campaign`/`Message` payloads are JSON strings (a portability choice from the SQLite prototype, kept on Postgres). Read them through helpers (`parseItem`, `parseTiers`, `parseCfg`) which fall back to safe defaults on parse failure. Always `JSON.stringify` on write. (A future cleanup could switch these to Postgres native `Json` columns.)
 - **Money is an integer in ₹.** Prices, totals, tax, discounts, reward `amount` — all integer rupees, no decimals/cents. Tax and the 5% "reward" accrual are computed server-side in `POST /api/orders`; never trust client totals.
 - **Every API route is `force-dynamic`.** Tenant and session must be resolved per request, so nothing is statically cached.
 - **Heuristic-first AI.** Every AI feature has a deterministic fallback and never hard-fails on a missing/broken LLM. `lib/ai.js` is intentionally never LLM-backed. `llmComplete` returns `null` on any error so callers degrade gracefully.
 - **Messaging never blocks core flows.** `sendWhatsApp` and `logAudit` are designed to never throw; order placement and audited mutations proceed even if messaging/logging fails.
 - **Tenant isolation is manual.** There's no automatic row-level security — correctness depends on every query scoping `tenantId`. New code must follow the gate + ownership-check pattern.
 - **Superadmin is host-scoped.** It can only log in on the apex host and is excluded from café-admin gates; café users can only log in on their own subdomain.
-- **`prisma db push`, not migrations.** There's no migrations folder. SQLite table rebuilds (e.g. adding unique columns) need `--accept-data-loss`; the deploy script backs up the DB first.
+- **`prisma db push`, not migrations.** There's no migrations folder — the deploy runs `db push`. On Postgres, additive changes apply cleanly; destructive ones need `--accept-data-loss`, and the deploy script backs up the DB first. (For a stricter prod flow, adopt `prisma migrate`.)
 - **Deletes prefer soft-handling.** Items in past orders are un-deletable (409, hide instead); tables with orders are deactivated, not deleted — preserving order history.
 - **`COOKIE_DOMAIN` is production-only.** Setting it locally breaks login (it forces `secure` cookies). Leave it unset for dev.
 - **Reserved subdomains.** `www, console, admin, api, app, mail, assets, static, super` are never café slugs (enforced in both `middleware.js` and `lib/tenant.js`; keep the two lists in sync).
