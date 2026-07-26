@@ -7,6 +7,9 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swa
 const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-serif", display: "swap", weight: ["400", "500", "600", "700"], style: ["normal", "italic"] });
 
 export const metadata = {
+  // Absolute base for OG/Twitter/relative image URLs — without this, Next resolves
+  // them against localhost, so shared links show a broken preview in production.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://getshoku.com"),
   title: "Shoku — Order smarter",
   description:
     "Shoku is an AI-powered white-label ordering app for cafes and restaurant chains. Get smart recommendations and know exactly what's in your cup.",
