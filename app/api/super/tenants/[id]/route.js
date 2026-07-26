@@ -24,7 +24,7 @@ export async function PATCH(req, { params }) {
   if ("aiModel" in b) data.aiModel = String(b.aiModel || "").trim() || null;
   if ("aiBaseUrl" in b) data.aiBaseUrl = String(b.aiBaseUrl || "").trim() || null;
 
-  const tenant = await prisma.tenant.update({ where: { id: params.id }, data });
+  const tenant = await prisma.tenant.update({ where: { id: (await params).id }, data });
 
   // Key material never goes in the audit log — only whether one is set.
   if (["aiApiKey", "aiModel", "aiBaseUrl"].some((k) => k in b)) {

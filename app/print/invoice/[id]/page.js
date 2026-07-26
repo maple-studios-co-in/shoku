@@ -12,7 +12,7 @@ export default async function InvoicePrint({ params }) {
   if (gate.error) return <p style={{ fontFamily: "monospace", padding: 20 }}>Sign in as café staff to print.</p>;
 
   const order = await prisma.order.findFirst({
-    where: { id: params.id, tenantId: gate.tenantId },
+    where: { id: (await params).id, tenantId: gate.tenantId },
     include: { items: true, user: true },
   });
   if (!order) return <p style={{ fontFamily: "monospace", padding: 20 }}>Order not found.</p>;

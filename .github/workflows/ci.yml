@@ -54,8 +54,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      # High/critical advisory report. NON-blocking for now — make this a hard gate
-      # (drop continue-on-error) once the Next.js / next-auth upgrade lands.
+      # Hard gate: fails the build on any high/critical advisory. The tree is clean
+      # as of the Next 15 / next-auth 4.24.15 upgrade (+ postcss/sharp overrides).
       - name: npm audit (high+)
-        continue-on-error: true
         run: npm audit --audit-level=high
